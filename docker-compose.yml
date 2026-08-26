@@ -1,0 +1,18 @@
+services:
+
+    mongodb:
+        image: mongo:8
+        container_name: job-processing-mongodb
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongodb_data:/data/db
+
+    kafka:
+        image: apache/kafka:4.0.0
+        container_name: job-processing-kafka
+        ports:
+            - "9092:9092"
+
+volumes:
+    mongodb_data:
