@@ -12,7 +12,13 @@ public interface JobRepository extends MongoRepository<Job, String> {
 
     Optional<Job> findByIdempotencyKey(String idempotencyKey);
 
-    List<Job> findByStatusAndScheduledAtLessThanEqual(
+    Optional<Job> findByIdAndStatus(
+            String id,
+            JobStatus status
+    );
+
+    List<Job>
+    findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
             JobStatus status,
             Instant scheduledAt
     );

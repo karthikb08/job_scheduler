@@ -18,10 +18,12 @@ public record JobResponse(
 
         Instant createdAt,
 
-        Instant scheduledAt,
+        int scheduledAt,
 
         int retryCount,
 
-        int maxRetries
+        Instant maxRetries,
+
+        String lastError
 ) {
 }

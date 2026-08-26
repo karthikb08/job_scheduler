@@ -53,6 +53,15 @@ public class Job {
     @Version
     private Long version;
 
+    private String lastError;
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public void setLastError(String lastError) {
+        this.lastError = lastError;
+    }
 
     // Required by MongoDB
     public Job() {

@@ -1,16 +1,14 @@
 package com.sb.controller;
 
-
 import com.sb.dto.CreateJobRequest;
 import com.sb.dto.JobResponse;
+import com.sb.service.JobMapper;
 import com.sb.service.JobService;
-
 import jakarta.validation.Valid;
-
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/jobs")
@@ -18,32 +16,84 @@ public class JobController {
 
     private final JobService jobService;
 
-    public JobController(JobService jobService) {
+    private final JobMapper mapper;
+
+    public JobController(
+            JobService jobService,
+            JobMapper mapper) {
+
         this.jobService = jobService;
+
+        this.mapper = mapper;
     }
 
+    /*
+     * ---------------------------------------------------------
+     * SUBMIT JOB
+     * ---------------------------------------------------------
+     */
     @PostMapping
-    public ResponseEntity<JobResponse> createJob(
+    public ResponseEntity<JobResponse> submit(
+
             @RequestHeader("Idempotency-Key")
             String idempotencyKey,
+
             @Valid
             @RequestBody
             CreateJobRequest request) {
 
-        JobResponse response =
-                jobService.createJob(
-                        idempotencyKey,
-                        request);
+        if (idempotencyKey.isBlank()
+                || idempotencyKey.length() > 200) {
 
-        return ResponseEntity.accepted()
-                .body(response);
+            throw new IllegalArgumentException(
+                    "Idempotency-Key must contain "
+                            + "1-200 characters"
+            );
+        }
+
+        var job =
+                jobService.create(
+                        request,
+                        idempotencyKey
+                );
+
+        return ResponseEntity
+                .created(
+                        URI.create(
+                                "/api/v1/jobs/"
+                                        + job.getId()
+                        )
+                )
+                .body(
+                        mapper.toResponse(job)
+                );
     }
 
-    @GetMapping("/{jobId}")
-    public ResponseEntity<JobResponse> getJob(
-            @PathVariable String jobId) {
+    /*
+     * ---------------------------------------------------------
+     * GET JOB
+     * ---------------------------------------------------------
+     */
+    @GetMapping("/{id}")
+    public JobResponse get(
+            @PathVariable String id) {
 
-        return ResponseEntity.ok(
-                jobService.getJob(jobId));
+        return mapper.toResponse(
+                jobService.get(id)
+        );
+    }
+
+    /*
+     * ---------------------------------------------------------
+     * CANCEL JOB
+     * ---------------------------------------------------------
+     */
+    @DeleteMapping("/{id}")
+    public JobResponse cancel(
+            @PathVariable String id) {
+
+        return mapper.toResponse(
+                jobService.cancel(id)
+        );
     }
 }
