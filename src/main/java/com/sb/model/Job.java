@@ -1,11 +1,5 @@
 package com.sb.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -57,10 +51,6 @@ public class Job {
 
     public String getLastError() {
         return lastError;
-    }
-
-    public void setLastError(String lastError) {
-        this.lastError = lastError;
     }
 
     // Required by MongoDB
