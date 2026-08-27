@@ -164,14 +164,20 @@ public class JobService {
                 );
 
         if (cancelled != null) {
+            System.out.println("JOB CANCELLED SUCCESSFULLY | id=" + id);
             return cancelled;
         }
 
-        Job current = get(id);
+        /* Job was not QUEUED.*/
+        Job current = mongoTemplate.findById(id, Job.class);
 
-        if (current.getStatus()
-                == JobStatus.CANCELLED) {
+        if (current == null) {
+            throw new JobNotFoundException(
+                    "Job not found: " + id
+            );
+        }
 
+        if (current.getStatus() == JobStatus.CANCELLED) {
             return current;
         }
 

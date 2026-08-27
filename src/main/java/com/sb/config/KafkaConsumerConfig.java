@@ -18,7 +18,6 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConsumerConfig {
-//d
 
     @Bean
     public ConsumerFactory<String, JobMessage>
