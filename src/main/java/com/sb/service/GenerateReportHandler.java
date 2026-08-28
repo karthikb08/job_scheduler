@@ -1,13 +1,13 @@
 package com.sb.service;
 
 import com.sb.model.Job;
+import com.sb.model.JobType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GenerateReportHandler
-        implements JobHandler {
+public class GenerateReportHandler implements JobHandler {
     @Override
-    public com.sb.model.JobType supportedType() {
+    public JobType supportedType() {
         return com.sb.model.JobType.GENERATE_REPORT;
     }
 

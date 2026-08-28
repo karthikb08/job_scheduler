@@ -1,6 +1,5 @@
 package com.sb.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sb.dto.CreateJobRequest;
 import com.sb.model.Job;
 import com.sb.model.JobPriority;
@@ -25,19 +24,18 @@ class JobControllerTest {
 
     private MockMvc mockMvc;
     private JobService jobService;
-    private JobMapper mapper;
-    private ObjectMapper objectMapper;
+    private JobMapper jobMapper;
 
     @BeforeEach
     void setUp() {
 
         jobService = mock(JobService.class);
-        mapper = mock(JobMapper.class);
+        jobMapper = mock(JobMapper.class);
 
         JobController controller =
                 new JobController(
                         jobService,
-                        mapper
+                        jobMapper
                 );
 
         mockMvc =
