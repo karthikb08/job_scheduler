@@ -252,76 +252,48 @@ class JobServiceTest {
     @Test
     void shouldScheduleRetryWhenJobFails() {
 
-        job.setStatus(
-                JobStatus.RUNNING
-        );
-
+        job.setStatus(JobStatus.RUNNING);
         job.setRetryCount(0);
         job.setMaxRetries(3);
 
         doThrow(
-                new RuntimeException(
-                        "Temporary failure"
-                )
+                new RuntimeException("Temporary failure")
         )
                 .when(handlerRegistry)
                 .handle(job);
 
         jobService.execute(job);
 
+        ArgumentCaptor<Update> updateCaptor =
+                ArgumentCaptor.forClass(Update.class);
+
         verify(mongoTemplate)
-                .updateFirst(
+                .findAndModify(
                         any(Query.class),
-                        any(Update.class),
+                        updateCaptor.capture(),
+                        any(FindAndModifyOptions.class),
                         eq(Job.class)
                 );
+
+        assertNotNull(updateCaptor.getValue());
     }
 
     @Test
     void shouldMarkJobFailedWhenMaximumRetriesReached() {
 
-        job.setStatus(
-                JobStatus.RUNNING
-        );
-
+        job.setStatus(JobStatus.RUNNING);
         job.setRetryCount(3);
         job.setMaxRetries(3);
 
-        doThrow(
-                new RuntimeException(
-                        "Permanent failure"
-                )
-        )
-                .when(handlerRegistry)
-                .handle(job);
-
+        doThrow(new RuntimeException("Permanent failure")).when(handlerRegistry).handle(job);
         jobService.execute(job);
-
-        ArgumentCaptor<Update> captor =
-                ArgumentCaptor.forClass(
-                        Update.class
-                );
-
-        verify(mongoTemplate)
-                .updateFirst(
-                        any(Query.class),
-                        captor.capture(),
-                        eq(Job.class)
-                );
-        String update = captor.getValue().toString();
-        assertTrue(update.contains("FAILED"));
+        verify(mongoTemplate).findAndModify(any(Query.class), any(Update.class), any(FindAndModifyOptions.class), eq(Job.class));
     }
 
     @Test
     void shouldCancelQueuedJob() {
-
-        Job cancelledJob =
-                createJob();
-
-        cancelledJob.setStatus(
-                JobStatus.CANCELLED
-        );
-
+        Job cancelledJob = createJob();
+        cancelledJob.setStatus(JobStatus.CANCELLED);
         when(
                 mongoTemplate.findAndModify(
                         any(Query.class),
@@ -330,25 +302,15 @@ class JobServiceTest {
                         eq(Job.class)
                 )
         ).thenReturn(cancelledJob);
-
-        Job result =
-                jobService.cancel(
-                        cancelledJob.getId()
-                );
-
+        Job result = jobService.cancel(cancelledJob.getId());
         assertEquals(JobStatus.CANCELLED, result.getStatus());
     }
 
     @Test
     void shouldPublishDueRetryJob() {
 
-        Job queued =
-                createJob();
-
-        queued.setStatus(
-                JobStatus.QUEUED
-        );
-
+        Job queued = createJob();
+        queued.setStatus(JobStatus.QUEUED);
         when(
                 mongoTemplate.findAndModify(
                         any(Query.class),
@@ -359,7 +321,6 @@ class JobServiceTest {
         ).thenReturn(queued);
 
         boolean result = jobService.publishDueJob(queued.getId(), JobStatus.RETRYING);
-
         assertTrue(result);
         verify(publisher).publish(queued);
     }

@@ -25,18 +25,10 @@ public class JobHandlerRegistry {
                         );
 
         System.out.println("========== JOB HANDLERS ==========");
-
         handlers.forEach((type, handler) ->
-                System.out.println(
-                        "Registered handler: "
-                                + handler.getClass().getName()
-                                + " | type="
-                                + type
-                )
+                System.out.println("Registered handler: " + handler.getClass().getName() + " | type=" + type)
         );
-
         System.out.println("Registered types = " + handlers.keySet());
-
         System.out.println("==================================");
     }
 

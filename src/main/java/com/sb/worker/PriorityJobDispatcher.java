@@ -102,7 +102,9 @@ public class PriorityJobDispatcher {
    //Shutdown
     @PreDestroy
     public void stop() throws InterruptedException {
+        System.out.println("========== SHUTDOWN STARTED ==========");
         System.out.println("Stopping job workers...");
+
         running = false;
         if (workers == null) {
             return;
@@ -114,8 +116,9 @@ public class PriorityJobDispatcher {
                 break;
             }
             worker.join(TimeUnit.NANOSECONDS.toMillis(remaining));
+            System.out.println("Worker finished: " + worker.getName() + " alive=" + worker.isAlive());
         }
-        System.out.println("Job workers stopped");
+        System.out.println("========== JOB WORKERS STOPPED ==========");
     }
 
 

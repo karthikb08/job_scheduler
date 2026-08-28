@@ -30,5 +30,11 @@ public class GenerateReportHandler implements JobHandler {
         }
 
         System.out.println("GENERATE_REPORT handler completed | jobId=" + job.getId());
+
+       //Testing Retry com.sun.net.httpserver.Authenticator.Failure
+//        System.out.println("GENERATE_REPORT handler executing | jobId=" + job.getId());
+//        System.out.println("PAYLOAD = [" + job.getPayload() + "]");
+//        throw new RuntimeException("TEST RETRY FAILURE");
+
     }
 }
