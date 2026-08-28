@@ -23,18 +23,9 @@ public class KafkaProducerConfig {
             @Value("${spring.kafka.bootstrap-servers}")
             String bootstrapServers) {
 
-        Map<String, Object> properties =
-                new HashMap<>();
-
-        properties.put(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                bootstrapServers
-        );
-
-        properties.put(
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class
-        );
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,JsonSerializer.class);
 
@@ -49,13 +40,7 @@ public class KafkaProducerConfig {
 
 
     @Bean
-    public KafkaTemplate<String, JobMessage>
-    kafkaTemplate(
-            ProducerFactory<String, JobMessage>
-                    producerFactory) {
-
-        return new KafkaTemplate<>(
-                producerFactory
-        );
+    public KafkaTemplate<String, JobMessage> kafkaTemplate(ProducerFactory<String, JobMessage> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
     }
 }

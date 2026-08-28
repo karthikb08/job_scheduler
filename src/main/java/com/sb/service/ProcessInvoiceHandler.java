@@ -13,15 +13,7 @@ public class ProcessInvoiceHandler
 
     @Override
     public void handle(Job job) {
-
-        System.out.println(
-                "PROCESS_INVOICE handler executing | jobId="
-                        + job.getId()
-        );
-
-        System.out.println(
-                "PROCESS_INVOICE handler completed | jobId="
-                        + job.getId()
-        );
+        System.out.println("PROCESS_INVOICE handler executing | jobId=" + job.getId());
+        System.out.println("PROCESS_INVOICE handler completed | jobId=" + job.getId());
     }
 }

@@ -14,25 +14,16 @@ public class GenerateReportHandler
     @Override
     public void handle(Job job) {
 
-        System.out.println(
-                "GENERATE_REPORT handler executing | jobId="
-                        + job.getId()
-        );
+        System.out.println("GENERATE_REPORT handler executing | jobId=" + job.getId());
 
         // Simulate report generation
         try {
             Thread.sleep(9000);//added for delay to check the cancel
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException(
-                    "Report generation interrupted",
-                    e
-            );
+            throw new IllegalStateException("Report generation interrupted", e);
         }
 
-        System.out.println(
-                "GENERATE_REPORT handler completed | jobId="
-                        + job.getId()
-        );
+        System.out.println("GENERATE_REPORT handler completed | jobId=" + job.getId());
     }
 }

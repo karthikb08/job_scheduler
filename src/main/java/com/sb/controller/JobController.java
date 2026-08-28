@@ -40,38 +40,21 @@ public class JobController {
             );
         }
 
-        var job =
-                jobService.create(
-                        request,
-                        idempotencyKey
-                );
+        var job = jobService.create(request, idempotencyKey);
 
-        return ResponseEntity
-                .created(
-                        URI.create(
-                                "/api/v1/jobs/"
-                                        + job.getId()
-                        )
-                )
-                .body(
-                        mapper.toResponse(job)
-                );
+        return ResponseEntity.created(URI.create("/api/v1/jobs/" + job.getId()))
+                .body(mapper.toResponse(job));
     }
 
    //Get Job
     @GetMapping("/{id}")
     public JobResponse get(@PathVariable String id) {
-        return mapper.toResponse(
-                jobService.get(id)
-        );
+        return mapper.toResponse(jobService.get(id));
     }
 
     //Cancel Job
     @DeleteMapping("/{id}")
     public JobResponse cancel(@PathVariable String id) {
-
-        return mapper.toResponse(
-                jobService.cancel(id)
-        );
+        return mapper.toResponse(jobService.cancel(id));
     }
 }

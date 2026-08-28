@@ -15,15 +15,7 @@ public class SendEmailHandler
 
     @Override
     public void handle(Job job) {
-
-        System.out.println(
-                "SEND_EMAIL handler executing | jobId="
-                        + job.getId()
-        );
-
-        System.out.println(
-                "SEND_EMAIL handler completed | jobId="
-                        + job.getId()
-        );
+        System.out.println("SEND_EMAIL handler executing | jobId=" + job.getId());
+        System.out.println("SEND_EMAIL handler completed | jobId=" + job.getId());
     }
 }

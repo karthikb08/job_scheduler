@@ -1,7 +1,6 @@
 package com.sb.config;
 
 import com.sb.kafka.JobMessage;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;

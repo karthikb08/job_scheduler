@@ -35,9 +35,7 @@ public class JobHandlerRegistry {
                 )
         );
 
-        System.out.println(
-                "Registered types = " + handlers.keySet()
-        );
+        System.out.println("Registered types = " + handlers.keySet());
 
         System.out.println("==================================");
     }
@@ -50,12 +48,8 @@ public class JobHandlerRegistry {
 
         if (handler == null) {
 
-            throw new IllegalArgumentException(
-                    "No handler found for job type: "
-                            + jobType
-                            + " | registered types="
-                            + handlers.keySet()
-            );
+            throw new IllegalArgumentException("No handler found for job type: "
+                    + jobType + " | registered types=" + handlers.keySet());
         }
 
         handler.handle(job);

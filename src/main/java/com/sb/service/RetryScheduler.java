@@ -2,6 +2,7 @@ package com.sb.service;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import com.sb.repository.JobRepository;
 
 import java.time.Instant;
 
@@ -12,23 +13,15 @@ public class RetryScheduler {
 
     private final JobService jobService;
 
-    public RetryScheduler(
-            com.sb.repository.JobRepository repository,
-            JobService jobService) {
-
+    public RetryScheduler(JobRepository repository, JobService jobService) {
         this.repository = repository;
-
         this.jobService = jobService;
     }
 
-    @Scheduled(
-            fixedDelayString =
-                    "${job.retry.scan-delay-ms:2000}"
-    )
+    @Scheduled(fixedDelayString = "${job.retry.scan-delay-ms:2000}")
     public void processDueJobs() {
 
         Instant now =Instant.now();
-
         repository
                 .findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
                         com.sb.model.JobStatus.RETRYING,

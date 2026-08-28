@@ -11,15 +11,5 @@ import java.util.Optional;
 public interface JobRepository extends MongoRepository<Job, String> {
 
     Optional<Job> findByIdempotencyKey(String idempotencyKey);
-
-    Optional<Job> findByIdAndStatus(
-            String id,
-            JobStatus status
-    );
-
-    List<Job>
-    findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
-            JobStatus status,
-            Instant scheduledAt
-    );
+    List<Job> findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(JobStatus status, Instant scheduledAt);
 }

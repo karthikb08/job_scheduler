@@ -10,23 +10,14 @@ import java.util.Map;
 @Component
 public class JobProcessorRegistry {
 
-    private final Map<JobType, JobProcessor> processors =
-            new EnumMap<>(JobType.class);
-
-    public JobProcessorRegistry(List<JobProcessor> processors) {
-
-        // We'll populate this properly once each processor
-        // declares the JobType it supports.
-    }
+    private final Map<JobType, JobProcessor> processors = new EnumMap<>(JobType.class);
 
     public JobProcessor getProcessor(JobType type) {
 
         JobProcessor processor = processors.get(type);
 
         if (processor == null) {
-            throw new IllegalArgumentException(
-                    "No processor found for job type: " + type
-            );
+            throw new IllegalArgumentException("No processor found for job type: " + type);
         }
 
         return processor;

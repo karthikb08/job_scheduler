@@ -7,6 +7,5 @@ import  com.sb.model.JobType;
 public interface JobHandler {
 
     JobType supportedType();
-
     void handle(Job job);
 }

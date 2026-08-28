@@ -73,11 +73,7 @@ public class JobService {
 
         job.setRetryCount(0);
 
-        job.setMaxRetries(
-                request.maxRetries() == null
-                        ? DEFAULT_MAX_RETRIES
-                        : request.maxRetries()
-        );
+        job.setMaxRetries(request.maxRetries() == null ? DEFAULT_MAX_RETRIES : request.maxRetries());
 
         job.setScheduledAt(request.scheduledAt());
 
@@ -213,13 +209,7 @@ public class JobService {
         return true;
     }
 
-    /*
-     * Very important:
-     *
-     * QUEUED -> RUNNING is atomic.
-     *
-     * This protects against duplicate Kafka delivery.
-     */
+    //Avoid Duplicate
     public Job claimForExecution(String id) {
 
         Query query =

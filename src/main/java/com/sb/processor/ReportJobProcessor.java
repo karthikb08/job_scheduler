@@ -8,9 +8,6 @@ public class ReportJobProcessor implements JobProcessor {
 
     @Override
     public void process(Job job) {
-
-        System.out.println(
-                "Generating report for job: " + job.getId()
-        );
+        System.out.println("Generating report for job: " + job.getId());
     }
 }
