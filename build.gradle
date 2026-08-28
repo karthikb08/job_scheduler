@@ -47,11 +47,8 @@ dependencies {
     testImplementation 'org.awaitility:awaitility'
 }
 
-test {
-    useJUnit()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
+tasks.named('test') {
+    useJUnitPlatform()
     reports {
         junitXml.required = true
         html.required = true

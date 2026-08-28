@@ -61,48 +61,29 @@ public class KafkaConsumerConfig {
                 JobMessage.class.getName()
         );
 
-        /*
-         * We manually acknowledge Kafka messages.
-         */
-        properties.put(
-                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
-                false
-        );
+        //acknowledge
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,false);
 
-        properties.put(
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
-                "earliest"
-        );
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"earliest");
 
-        return new DefaultKafkaConsumerFactory<>(
-                properties
-        );
+        return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory
             <String, JobMessage>
-    kafkaListenerContainerFactory(
-            ConsumerFactory<String, JobMessage>
-                    consumerFactory) {
+    kafkaListenerContainerFactory(ConsumerFactory<String, JobMessage>consumerFactory) {
 
         var factory =
                 new ConcurrentKafkaListenerContainerFactory
                         <String, JobMessage>();
 
-        factory.setConsumerFactory(
-                consumerFactory
-        );
+        factory.setConsumerFactory(consumerFactory);
 
-        /*
-         * Kafka consumer concurrency.
-         */
+        //Kafka consumer concurrency
         factory.setConcurrency(3);
-
         factory.getContainerProperties()
-                .setAckMode(
-                        ContainerProperties.AckMode.MANUAL
-                );
+                .setAckMode(ContainerProperties.AckMode.MANUAL);
 
         return factory;
     }

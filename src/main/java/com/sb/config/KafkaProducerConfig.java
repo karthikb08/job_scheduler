@@ -36,31 +36,17 @@ public class KafkaProducerConfig {
                 StringSerializer.class
         );
 
-        properties.put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                JsonSerializer.class
-        );
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,JsonSerializer.class);
 
-        /*
-         * Wait for all in-sync replicas.
-         */
-        properties.put(
-                ProducerConfig.ACKS_CONFIG,
-                "all"
-        );
+        //Wait for all in-sync replicas.
+        properties.put(ProducerConfig.ACKS_CONFIG,"all");
 
-        /*
-         * Producer idempotence.
-         */
-        properties.put(
-                ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,
-                true
-        );
+        //Producer idempotence
+        properties.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,true);
 
-        return new DefaultKafkaProducerFactory<>(
-                properties
-        );
+        return new DefaultKafkaProducerFactory<>(properties);
     }
+
 
     @Bean
     public KafkaTemplate<String, JobMessage>

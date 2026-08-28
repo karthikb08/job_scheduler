@@ -14,6 +14,7 @@ public class ExportDataHandler
     @Override
     public void handle(Job job) {
 
+        //Testing
         System.out.println(
                 "EXPORT_DATA handler executing | jobId="
                         + job.getId()

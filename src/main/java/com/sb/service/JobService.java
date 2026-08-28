@@ -85,15 +85,11 @@ public class JobService {
 
         try {
 
-            /*
-             * Unique MongoDB index protects
-             * concurrent duplicate requests.
-             */
+            // Unique MongoDB index protects concurrent duplicate requests
             Job saved = repository.save(job);
 
-            /*
-             * Immediate jobs are queued now.
-             */
+            //Immediate jobs are queued now.
+
             if (saved.getScheduledAt() == null
                     || !saved.getScheduledAt()
                     .isAfter(Instant.now())) {
@@ -103,21 +99,11 @@ public class JobService {
                 return get(saved.getId());
             }
 
-            /*
-             * Future scheduled job remains CREATED.
-             * RetryScheduler will queue it later.
-             */
-            return saved;
+        return saved;
 
         } catch (DuplicateKeyException e) {
 
-            /*
-             * Race condition:
-             *
-             * Request A and B both checked the key.
-             * Both didn't find it.
-             * MongoDB unique index allows only one.
-             */
+            //Race Condition and avoid
             return repository
                     .findByIdempotencyKey(idempotencyKey)
                     .orElseThrow(() -> e);

@@ -27,12 +27,8 @@ public class RetryScheduler {
     )
     public void processDueJobs() {
 
-        Instant now =
-                Instant.now();
+        Instant now =Instant.now();
 
-        /*
-         * Retry jobs.
-         */
         repository
                 .findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
                         com.sb.model.JobStatus.RETRYING,
@@ -46,9 +42,7 @@ public class RetryScheduler {
                                 )
                 );
 
-        /*
-         * Scheduled jobs.
-         */
+
         repository
                 .findTop100ByStatusAndScheduledAtLessThanEqualOrderByScheduledAtAsc(
                         com.sb.model.JobStatus.CREATED,

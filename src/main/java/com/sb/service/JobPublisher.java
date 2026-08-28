@@ -14,15 +14,10 @@ public class JobPublisher {
 
     private final String topic;
 
-    public JobPublisher(
-            KafkaTemplate<String, JobMessage>
-                    kafkaTemplate,
-
-            @Value("${job.kafka.topic}")
-            String topic) {
+    public JobPublisher(KafkaTemplate<String,
+            JobMessage> kafkaTemplate,@Value("${job.kafka.topic}") String topic) {
 
         this.kafkaTemplate = kafkaTemplate;
-
         this.topic = topic;
     }
 

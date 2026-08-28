@@ -15,29 +15,18 @@ import java.net.URI;
 public class JobController {
 
     private final JobService jobService;
-
     private final JobMapper mapper;
 
-    public JobController(
-            JobService jobService,
-            JobMapper mapper) {
-
+    public JobController(JobService jobService,JobMapper mapper) {
         this.jobService = jobService;
-
         this.mapper = mapper;
     }
 
-    /*
-     * ---------------------------------------------------------
-     * SUBMIT JOB
-     * ---------------------------------------------------------
-     */
+    //Create Job
     @PostMapping
     public ResponseEntity<JobResponse> submit(
-
             @RequestHeader("Idempotency-Key")
             String idempotencyKey,
-
             @Valid
             @RequestBody
             CreateJobRequest request) {
@@ -69,28 +58,17 @@ public class JobController {
                 );
     }
 
-    /*
-     * ---------------------------------------------------------
-     * GET JOB
-     * ---------------------------------------------------------
-     */
+   //Get Job
     @GetMapping("/{id}")
-    public JobResponse get(
-            @PathVariable String id) {
-
+    public JobResponse get(@PathVariable String id) {
         return mapper.toResponse(
                 jobService.get(id)
         );
     }
 
-    /*
-     * ---------------------------------------------------------
-     * CANCEL JOB
-     * ---------------------------------------------------------
-     */
+    //Cancel Job
     @DeleteMapping("/{id}")
-    public JobResponse cancel(
-            @PathVariable String id) {
+    public JobResponse cancel(@PathVariable String id) {
 
         return mapper.toResponse(
                 jobService.cancel(id)
