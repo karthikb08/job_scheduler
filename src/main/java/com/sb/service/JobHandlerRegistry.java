@@ -34,16 +34,13 @@ public class JobHandlerRegistry {
 
     public void handle(Job job) {
 
-        com.sb.model.JobType jobType = job.getType();
-
+        JobType jobType = job.getType();
         JobHandler handler = handlers.get(jobType);
 
         if (handler == null) {
-
             throw new IllegalArgumentException("No handler found for job type: "
                     + jobType + " | registered types=" + handlers.keySet());
         }
-
         handler.handle(job);
     }
 }

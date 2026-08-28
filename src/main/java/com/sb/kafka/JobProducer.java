@@ -4,7 +4,6 @@ import com.sb.config.KafkaTopicConfig;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import com.sb.model.Job;
-import com.sb.kafka.JobMessage;
 
 @Component
 public class JobProducer {
@@ -17,17 +16,7 @@ public class JobProducer {
     }
 
     public void publish(Job job) {
-
-        JobMessage message = new JobMessage(
-                job.getId(),
-                job.getType(),
-                job.getPriority()
-        );
-
-        kafkaTemplate.send(
-                KafkaTopicConfig.JOBS_TOPIC,
-                message.jobId(),
-                message
-        );
+        JobMessage message = new JobMessage(job.getId(), job.getType(), job.getPriority());
+        kafkaTemplate.send(KafkaTopicConfig.JOBS_TOPIC, message.jobId(), message);
     }
 }

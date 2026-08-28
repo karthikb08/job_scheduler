@@ -16,23 +16,13 @@ public class JobPublisher {
 
     public JobPublisher(KafkaTemplate<String,
             JobMessage> kafkaTemplate,@Value("${job.kafka.topic}") String topic) {
-
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
     }
 
     public void publish(Job job) {
 
-        JobMessage message = new JobMessage(
-                job.getId(),
-                job.getType(),
-                job.getPriority()
-        );
-
-        kafkaTemplate.send(
-                topic,
-                job.getId(),
-                message
-        );
+        JobMessage message = new JobMessage(job.getId(), job.getType(), job.getPriority());
+        kafkaTemplate.send(topic, job.getId(), message);
     }
 }

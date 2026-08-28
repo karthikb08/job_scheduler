@@ -29,9 +29,7 @@ public class JobConsumer {
 
         try {
             log.info("2. Job SUBMITTING to dispatcher | jobId={}", message.jobId());
-            dispatcher
-                    .submit(message)
-                    .get(15, java.util.concurrent.TimeUnit.MINUTES);
+            dispatcher.submit(message).get(15, java.util.concurrent.TimeUnit.MINUTES);
             log.info("6. Worker processing SUCCESS | jobId={}", message.jobId());
             acknowledgment.acknowledge();
             log.info("7. Kafka ACK sent | jobId={}", message.jobId());

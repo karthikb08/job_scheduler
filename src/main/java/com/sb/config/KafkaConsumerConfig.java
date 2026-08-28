@@ -19,71 +19,35 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     @Bean
-    public ConsumerFactory<String, JobMessage>
-    consumerFactory(
+    public ConsumerFactory<String, JobMessage> consumerFactory(
             @Value("${spring.kafka.bootstrap-servers}")
             String bootstrapServers,
 
             @Value("${spring.kafka.consumer.group-id}")
             String groupId) {
 
-        Map<String, Object> properties =
-                new HashMap<>();
-
-        properties.put(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                bootstrapServers
-        );
-
-        properties.put(
-                ConsumerConfig.GROUP_ID_CONFIG,
-                groupId
-        );
-
-        properties.put(
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                StringDeserializer.class
-        );
-
-        properties.put(
-                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                JsonDeserializer.class
-        );
-
-        properties.put(
-                JsonDeserializer.TRUSTED_PACKAGES,
-                "com.example.jobsystem.kafka"
-        );
-
-        properties.put(
-                JsonDeserializer.VALUE_DEFAULT_TYPE,
-                JobMessage.class.getName()
-        );
-
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        properties.put(JsonDeserializer.TRUSTED_PACKAGES, "com.example.jobsystem.kafka");
+        properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, JobMessage.class.getName());
         //acknowledge
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,false);
-
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,"earliest");
-
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory
-            <String, JobMessage>
+    public ConcurrentKafkaListenerContainerFactory<String, JobMessage>
     kafkaListenerContainerFactory(ConsumerFactory<String, JobMessage>consumerFactory) {
 
-        var factory =
-                new ConcurrentKafkaListenerContainerFactory
-                        <String, JobMessage>();
-
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, JobMessage>();
         factory.setConsumerFactory(consumerFactory);
-
         //Kafka consumer concurrency
         factory.setConcurrency(3);
-        factory.getContainerProperties()
-                .setAckMode(ContainerProperties.AckMode.MANUAL);
-
-        return factory;
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+       return factory;
     }
 }
