@@ -16,6 +16,11 @@ public class GenerateReportHandler implements JobHandler {
 
         System.out.println("GENERATE_REPORT handler executing | jobId=" + job.getId());
 
+        if ("FAIL".equalsIgnoreCase(job.getPayload())) {
+            System.out.println("GENERATE_REPORT handler FAILED | jobId=" + job.getId());
+            throw new RuntimeException("Simulated report generation failure");
+        }
+
         // Simulate report generation
         try {
             Thread.sleep(9000);//added for delay to check the cancel

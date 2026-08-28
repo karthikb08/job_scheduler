@@ -28,22 +28,11 @@ class JobControllerTest {
 
     @BeforeEach
     void setUp() {
-
         jobService = mock(JobService.class);
         jobMapper = mock(JobMapper.class);
-
-        JobController controller =
-                new JobController(
-                        jobService,
-                        jobMapper
-                );
-
-        mockMvc =
-                MockMvcBuilders
-                        .standaloneSetup(controller)
-                        .build();
+        JobController controller = new JobController(jobService, jobMapper);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
-
 
     //Create Job
     @Test
@@ -60,42 +49,20 @@ class JobControllerTest {
         )).thenReturn(job);
         mockMvc.perform(
                         post("/api/v1/jobs")
-                                .header(
-                                        "Idempotency-Key",
-                                        UUID.randomUUID().toString()
-                                )
+                                .header("Idempotency-Key", UUID.randomUUID().toString())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                            {
-                              "type": "GENERATE_REPORT",
-                              "priority": "HIGH"
-                            }
-                            """)
+                                .content("{\n  \"type\": \"GENERATE_REPORT\",\n  \"priority\": \"HIGH\"\n}\n")
                 )
                 .andDo(result -> {
-
                     System.out.println("========================================");
                     System.out.println("CREATE JOB TEST");
-                    System.out.println(
-                            "STATUS = "
-                                    + result.getResponse().getStatus()
-                    );
-                    System.out.println(
-                            "BODY = "
-                                    + result.getResponse().getContentAsString()
-                    );
+                    System.out.println("STATUS = " + result.getResponse().getStatus());
+                    System.out.println("BODY = " + result.getResponse().getContentAsString());
                     System.out.println("========================================");
-
                 })
                 .andExpect(status().isCreated());
-
-        verify(jobService).create(
-                any(CreateJobRequest.class),
-                anyString()
-        );
+        verify(jobService).create(any(CreateJobRequest.class), anyString());
     }
-
-
 
     //Get Job
     @Test
@@ -114,25 +81,12 @@ class JobControllerTest {
                         )
                 )
                 .andDo(result -> {
-
-                    System.out.println(
-                            "GET STATUS : "
-                                    + result.getResponse()
-                                    .getStatus()
-                    );
-
-                    System.out.println(
-                            "GET BODY   : "
-                                    + result.getResponse()
-                                    .getContentAsString()
-                    );
+                    System.out.println("GET STATUS : " + result.getResponse().getStatus());
+                    System.out.println("GET BODY   : " + result.getResponse().getContentAsString());
                 })
                 .andExpect(status().isOk());
-        verify(jobService)
-                .get(id);
+        verify(jobService).get(id);
     }
-
-
 
     //Cancel Job
     @Test
@@ -143,29 +97,13 @@ class JobControllerTest {
         job.setStatus(JobStatus.CANCELLED);
         job.setType(JobType.GENERATE_REPORT);
         job.setPriority(JobPriority.HIGH);
-        when(jobService.cancel(id))
-                .thenReturn(job);
-        mockMvc.perform(
-                        delete(
-                                "/api/v1/jobs/{id}",
-                                id
-                        )
-                )
+        when(jobService.cancel(id)).thenReturn(job);
+        mockMvc.perform(delete("/api/v1/jobs/{id}", id))
                 .andDo(result -> {
-                    System.out.println(
-                            "DELETE STATUS : "
-                                    + result.getResponse()
-                                    .getStatus()
-                    );
-
-                    System.out.println(
-                            "DELETE BODY   : "
-                                    + result.getResponse()
-                                    .getContentAsString()
-                    );
+                    System.out.println("DELETE STATUS : " + result.getResponse().getStatus());
+                    System.out.println("DELETE BODY   : " + result.getResponse().getContentAsString());
                 })
                 .andExpect(status().isOk());
-        verify(jobService)
-                .cancel(id);
+        verify(jobService).cancel(id);
     }
 }

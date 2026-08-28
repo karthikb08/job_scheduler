@@ -31,17 +31,10 @@ public class JobController {
             @RequestBody
             CreateJobRequest request) {
 
-        if (idempotencyKey.isBlank()
-                || idempotencyKey.length() > 200) {
-
-            throw new IllegalArgumentException(
-                    "Idempotency-Key must contain "
-                            + "1-200 characters"
-            );
+        if (idempotencyKey.isBlank() || idempotencyKey.length() > 200) {
+            throw new IllegalArgumentException("Idempotency-Key must contain 1-200 characters" );
         }
-
         var job = jobService.create(request, idempotencyKey);
-
         return ResponseEntity.created(URI.create("/api/v1/jobs/" + job.getId()))
                 .body(mapper.toResponse(job));
     }

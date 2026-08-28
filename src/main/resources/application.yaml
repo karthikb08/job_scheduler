@@ -31,7 +31,7 @@ job:
         threads: 4
         queue-capacity: 1000
     retry:
-        scan-delay-ms: 2000
+        scan-delay-ms: 5000
 
 management:
     endpoints:

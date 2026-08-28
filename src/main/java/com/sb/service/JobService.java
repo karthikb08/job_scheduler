@@ -43,40 +43,23 @@ public class JobService {
         this.handlerRegistry = handlerRegistry;
     }
 
-    public Job create(
-            CreateJobRequest request,
-            String idempotencyKey) {
+    public Job create(CreateJobRequest request, String idempotencyKey) {
 
-        /*
-         * First check.
-         *
-         * Fast path for duplicate requests.
-         */
-        var existing =
-                repository.findByIdempotencyKey(idempotencyKey);
+        var existing = repository.findByIdempotencyKey(idempotencyKey);
 
         if (existing.isPresent()) {
             return existing.get();
         }
 
         Job job = new Job();
-
         job.setId(UUID.randomUUID().toString());
-
         job.setType(request.type());
-
         job.setPriority(request.priority());
-
         job.setStatus(JobStatus.CREATED);
-
         job.setCreatedAt(Instant.now());
-
         job.setRetryCount(0);
-
         job.setMaxRetries(request.maxRetries() == null ? DEFAULT_MAX_RETRIES : request.maxRetries());
-
         job.setScheduledAt(request.scheduledAt());
-
         job.setIdempotencyKey(idempotencyKey);
 
         try {
@@ -85,65 +68,30 @@ public class JobService {
             Job saved = repository.save(job);
 
             //Immediate jobs are queued now.
-
-            if (saved.getScheduledAt() == null
-                    || !saved.getScheduledAt()
-                    .isAfter(Instant.now())) {
-
+            if (saved.getScheduledAt() == null || !saved.getScheduledAt().isAfter(Instant.now())) {
                 queue(saved.getId());
-
                 return get(saved.getId());
             }
-
         return saved;
-
         } catch (DuplicateKeyException e) {
-
             //Race Condition and avoid
-            return repository
-                    .findByIdempotencyKey(idempotencyKey)
-                    .orElseThrow(() -> e);
+            return repository.findByIdempotencyKey(idempotencyKey).orElseThrow(() -> e);
         }
     }
 
     public Job get(String id) {
-
-        return repository
-                .findById(id)
-                .orElseThrow(
-                        () -> new JobNotFoundException(id)
-                );
+        return repository.findById(id).orElseThrow(() -> new JobNotFoundException(id));
     }
 
     public Job cancel(String id) {
 
-        Query query =
-                Query.query(
-                        Criteria.where("_id")
-                                .is(id)
-                                .and("status")
-                                .is(JobStatus.QUEUED)
-                );
+        Query query = Query.query(Criteria.where("_id").is(id).and("status").is(JobStatus.QUEUED));
 
-        Update update =
-                new Update()
-                        .set(
-                                "status",
-                                JobStatus.CANCELLED
-                        )
-                        .set(
-                                "cancelledAt",
-                                Instant.now()
-                        );
+        Update update = new Update().set("status", JobStatus.CANCELLED).
+                set("cancelledAt", Instant.now());
 
-        Job cancelled =
-                mongoTemplate.findAndModify(
-                        query,
-                        update,
-                        FindAndModifyOptions.options()
-                                .returnNew(true),
-                        Job.class
-                );
+        Job cancelled = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options()
+                .returnNew(true), Job.class);
 
         if (cancelled != null) {
             System.out.println("JOB CANCELLED SUCCESSFULLY | id=" + id);
@@ -154,309 +102,132 @@ public class JobService {
         Job current = mongoTemplate.findById(id, Job.class);
 
         if (current == null) {
-            throw new JobNotFoundException(
-                    "Job not found: " + id
-            );
+            throw new JobNotFoundException("Job not found: " + id);
         }
 
         if (current.getStatus() == JobStatus.CANCELLED) {
             return current;
         }
 
-        throw new InvalidJobStateException(
-                "Job " + id
-                        + " cannot be cancelled from status "
-                        + current.getStatus()
-        );
+        throw new InvalidJobStateException("Job " + id + " cannot be cancelled from status " + current.getStatus());
     }
 
     public boolean queue(String id) {
 
-        Query query =
-                Query.query(
-                        Criteria.where("_id")
-                                .is(id)
-                                .and("status")
-                                .is(JobStatus.CREATED)
-                );
+        Query query = Query.query(Criteria.where("_id").is(id).and("status")
+                .is(JobStatus.CREATED));
 
-        Update update =
-                new Update()
-                        .set(
-                                "status",
-                                JobStatus.QUEUED
-                        )
-                        .set(
-                                "scheduledAt",
-                                null
-                        );
+        Update update = new Update().set("status", JobStatus.QUEUED).set("scheduledAt", null);
 
-        Job queued =
-                mongoTemplate.findAndModify(
-                        query,
-                        update,
-                        FindAndModifyOptions.options()
-                                .returnNew(true),
-                        Job.class
-                );
+        Job queued = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options()
+                .returnNew(true), Job.class);
 
         if (queued == null) {
             return false;
         }
-
         publisher.publish(queued);
-
         return true;
     }
 
     //Avoid Duplicate
     public Job claimForExecution(String id) {
 
-        Query query =
-                Query.query(
-                        Criteria.where("_id")
-                                .is(id)
-                                .and("status")
-                                .is(JobStatus.QUEUED)
-                );
+        Query query = Query.query(Criteria.where("_id").is(id).and("status").is(JobStatus.QUEUED));
 
-        Update update =
-                new Update()
-                        .set(
-                                "status",
-                                JobStatus.RUNNING
-                        )
-                        .set(
-                                "startedAt",
-                                Instant.now()
-                        );
+        Update update = new Update().set("status", JobStatus.RUNNING)
+                .set("startedAt", Instant.now());
 
-        return mongoTemplate.findAndModify(
-                query,
-                update,
-                FindAndModifyOptions.options()
-                        .returnNew(true),
-                Job.class
-        );
+        return mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options()
+                .returnNew(true), Job.class);
     }
 
     public void execute(Job job) {
 
         try {
-
-            System.out.println(
-                    "Executing job "
-                            + job.getId()
-                            + " type="
-                            + job.getType()
-                            + " priority="
-                            + job.getPriority()
-            );
+            System.out.println("Executing job " + job.getId() + " type=" + job.getType() + " priority=" + job.getPriority());
 
             handlerRegistry.handle(job);
 
-            Query query =
-                    Query.query(
-                            Criteria.where("_id")
-                                    .is(job.getId())
-                                    .and("status")
-                                    .is(JobStatus.RUNNING)
-                    );
+            Query query = Query.query(Criteria.where("_id").is(job.getId())
+                    .and("status").is(JobStatus.RUNNING));
 
-            Update update =
-                    new Update()
-                            .set(
-                                    "status",
-                                    JobStatus.COMPLETED
-                            )
-                            .set(
-                                    "completedAt",
-                                    Instant.now()
-                            )
-                            .set(
-                                    "lastError",
-                                    null
-                            );
-
-            mongoTemplate.updateFirst(
-                    query,
-                    update,
-                    Job.class
-            );
-
-            System.out.println(
-                    "Job completed: "
-                            + job.getId()
-            );
-
+            Update update = new Update().set("status", JobStatus.COMPLETED)
+                    .set("completedAt", Instant.now()).set("lastError", null);
+            mongoTemplate.updateFirst(query, update, Job.class);
+            System.out.println("Job completed: " + job.getId());
         } catch (Exception e) {
-
-            System.out.println(
-                    "Job failed: "
-                            + job.getId()
-                            + " error="
-                            + e.getMessage()
-            );
-
+            System.out.println("Job failed: " + job.getId() + " error=" + e.getMessage());
             handleFailure(job, e);
         }
     }
 
-    private void handleFailure(
-            Job job,
-            Exception exception) {
-
-        Query query =
-                Query.query(
-                        Criteria.where("_id")
-                                .is(job.getId())
-                                .and("status")
-                                .is(JobStatus.RUNNING)
-                );
-
-        int nextRetry =
-                job.getRetryCount() + 1;
-
+    private void handleFailure(Job job, Exception exception) {
+        int nextRetry = job.getRetryCount() + 1;
+        String error = safeError(exception);
         if (nextRetry <= job.getMaxRetries()) {
+            long delay = retryDelayMillis(nextRetry);
 
-            long delay =
-                    retryDelayMillis(nextRetry);
+            Query query = Query.query(Criteria.where("_id")
+                    .is(job.getId()).and("status").is(JobStatus.RUNNING));
 
-            Update update =
-                    new Update()
-                            .set(
-                                    "status",
-                                    JobStatus.RETRYING
-                            )
-                            .set(
-                                    "retryCount",
-                                    nextRetry
-                            )
-                            .set(
-                                    "scheduledAt",
-                                    Instant.now()
-                                            .plusMillis(delay)
-                            )
-                            .set(
-                                    "lastError",
-                                    safeError(exception)
-                            );
+            Update update = new Update()
+                    .set("status", JobStatus.RETRYING)
+                    .set("retryCount", nextRetry)
+                    .set(
+                            "scheduledAt",
+                            Instant.now().plusMillis(delay)
+                    )
+                    .set("lastError", error);
 
-            mongoTemplate.updateFirst(
-                    query,
-                    update,
-                    Job.class
-            );
+            Job updated = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options().returnNew(true), Job.class);
 
-            System.out.println(
-                    "Job scheduled for retry: "
-                            + job.getId()
-                            + " retry="
-                            + nextRetry
-            );
+            if (updated != null) {
+                System.out.println("Job scheduled for retry: " + job.getId() + " retry=" + nextRetry + " scheduledAt=" + updated.getScheduledAt());
+            }
 
         } else {
+            Query query = Query.query(Criteria.where("_id").is(job.getId()).and("status").is(JobStatus.RUNNING));
+            Update update = new Update()
+                    .set("status", JobStatus.FAILED)
+                    .set("retryCount", nextRetry)
+                    .set("lastError", error)
+                    .set("completedAt", Instant.now());
 
-            Update update =
-                    new Update()
-                            .set(
-                                    "status",
-                                    JobStatus.FAILED
-                            )
-                            .set(
-                                    "retryCount",
-                                    nextRetry
-                            )
-                            .set(
-                                    "lastError",
-                                    safeError(exception)
-                            );
-
-            mongoTemplate.updateFirst(
+            Job updated = mongoTemplate.findAndModify(
                     query,
                     update,
+                    FindAndModifyOptions.options()
+                            .returnNew(true),
                     Job.class
             );
 
-            System.out.println(
-                    "Job permanently failed: "
-                            + job.getId()
-            );
+            if (updated != null) {
+                System.out.println("Job permanently failed: " + job.getId() + " retryCount=" + nextRetry);
+            }
         }
     }
 
-    public boolean publishDueJob(
-            String id,
-            JobStatus expectedStatus) {
+    public boolean publishDueJob(String id, JobStatus expectedStatus) {
+        Query query = Query.query(Criteria.where("_id")
+                .is(id).and("status").is(expectedStatus)
+                .and("scheduledAt").lte(Instant.now()));
 
-        Query query =
-                Query.query(
-                        Criteria.where("_id")
-                                .is(id)
-                                .and("status")
-                                .is(expectedStatus)
-                                .and("scheduledAt")
-                                .lte(Instant.now())
-                );
-
-        Update update =
-                new Update()
-                        .set(
-                                "status",
-                                JobStatus.QUEUED
-                        )
-                        .set(
-                                "scheduledAt",
-                                null
-                        );
-
-        Job queued =
-                mongoTemplate.findAndModify(
-                        query,
-                        update,
-                        FindAndModifyOptions.options()
-                                .returnNew(true),
-                        Job.class
-                );
-
+        Update update = new Update().set("status", JobStatus.QUEUED).set("scheduledAt", null);
+        Job queued = mongoTemplate.findAndModify(query, update, FindAndModifyOptions.options()
+                .returnNew(true), Job.class);
         if (queued == null) {
             return false;
         }
-
         publisher.publish(queued);
-
         return true;
     }
 
-    private long retryDelayMillis(
-            int retryNumber) {
-
-        /*
-         * Retry 1 = 2 seconds
-         * Retry 2 = 4 seconds
-         * Retry 3 = 8 seconds
-         */
-        return Duration
-                .ofSeconds(
-                        2L *
-                                (1L << Math.min(
-                                        retryNumber - 1,
-                                        6
-                                ))
-                )
-                .toMillis();
+    private long retryDelayMillis(int retryNumber) {
+        return Duration.ofSeconds(2L * (1L << Math.min(retryNumber - 1, 6))).toMillis();
     }
 
     private String safeError(Exception exception) {
-
-        String message =
-                exception.getMessage() == null
-                        ? exception.getClass()
-                        .getSimpleName()
-                        : exception.getMessage();
-
-        return message.length() > 1000
-                ? message.substring(0, 1000)
-                : message;
+        String message = exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage();
+        return message.length() > 1000 ? message.substring(0, 1000) : message;
     }
 }

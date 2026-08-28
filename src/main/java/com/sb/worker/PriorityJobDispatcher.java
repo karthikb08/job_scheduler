@@ -18,18 +18,10 @@ public class PriorityJobDispatcher {
     private final JobService jobService;
 
     private final int workerCount;
-
     private final int queueCapacity;
-
-    private final PriorityBlockingQueue<WorkItem>
-            queue =
-            new PriorityBlockingQueue<>();
-
-    private final AtomicLong sequence =
-            new AtomicLong();
-
+    private final PriorityBlockingQueue<WorkItem> queue = new PriorityBlockingQueue<>();
+    private final AtomicLong sequence = new AtomicLong();
     private volatile boolean running;
-
     private Thread[] workers;
 
     public PriorityJobDispatcher(
@@ -49,92 +41,42 @@ public class PriorityJobDispatcher {
     //Start here
     @PostConstruct
     public void start() {
-
-        running = true;
-
-        workers =
-                new Thread[workerCount];
-
-        for (int i = 0;
-             i < workerCount;
-             i++) {
-
-            workers[i] = new Thread(
-                    this::workerLoop,
-                    "job-worker-" + i
-            );
-
+        running = true;workers = new Thread[workerCount];
+        for (int i = 0; i < workerCount; i++) {
+            workers[i] = new Thread(this::workerLoop, "job-worker-" + i);
             workers[i].start();
         }
-
-        System.out.println(
-                "Started "
-                        + workerCount
-                        + " job workers"
-        );
+        System.out.println("Started " + workerCount + " job workers");
     }
 
    //Submit priority queue
-    public CompletableFuture<Void> submit(
-            JobMessage message) {
-
+    public CompletableFuture<Void> submit(JobMessage message) {
         if (!running) {
-
-            return CompletableFuture
-                    .failedFuture(
-                            new IllegalStateException(
-                                    "Dispatcher is shutting down"
-                            )
-                    );
+            return CompletableFuture.failedFuture(new IllegalStateException("Dispatcher is shutting down"));
         }
 
         if (queue.size() >= queueCapacity) {
-
-            return CompletableFuture
-                    .failedFuture(
-                            new IllegalStateException(
-                                    "Worker queue is full"
-                            )
-                    );
+            return CompletableFuture.failedFuture(new IllegalStateException("Worker queue is full"));
         }
 
-        CompletableFuture<Void> future =
-                new CompletableFuture<>();
-
-        WorkItem item =
-                new WorkItem(
-                        message,
-                        sequence.incrementAndGet(),
-                        future
-                );
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+        WorkItem item = new WorkItem(message, sequence.incrementAndGet(), completableFuture);
 
         queue.offer(item);
 
-        return future;
+        return completableFuture;
     }
 
    //Work Loop
     private void workerLoop() {
-
         while (running || !queue.isEmpty()) {
-
             WorkItem item = null;
-
             try {
-
-                item =
-                        queue.poll(
-                                500,
-                                TimeUnit.MILLISECONDS
-                        );
-
+                item = queue.poll(500, TimeUnit.MILLISECONDS);
                 if (item == null) {
-
                     continue;
                 }
-
                 var job = jobService.claimForExecution(item.message().jobId());
-
                 if (job == null) {
                     item.future().complete(null);
                     continue;
@@ -143,14 +85,11 @@ public class PriorityJobDispatcher {
                 item.future().complete(null);
 
             } catch (InterruptedException exception) {
-
                 if (item != null) {
                     item.future().completeExceptionally(exception);
                 }
-
                 Thread.currentThread().interrupt();
                 return;
-
             } catch (Exception exception) {
 
                 if (item != null) {
@@ -163,47 +102,33 @@ public class PriorityJobDispatcher {
    //Shutdown
     @PreDestroy
     public void stop() throws InterruptedException {
-
         System.out.println("Stopping job workers...");
-
         running = false;
         if (workers == null) {
             return;
         }
-
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
-
         for (Thread worker : workers) {
-
             long remaining = deadline - System.nanoTime();
             if (remaining <= 0) {
                 break;
             }
             worker.join(TimeUnit.NANOSECONDS.toMillis(remaining));
         }
-
         System.out.println("Job workers stopped");
     }
 
 
-    private record WorkItem(
-            JobMessage message,
-            long sequence,
-            CompletableFuture<Void> future
-
-    ) implements Comparable<WorkItem> {
+    private record WorkItem(JobMessage message, long sequence, CompletableFuture<Void> future)
+            implements Comparable<WorkItem> {
 
         @Override
         public int compareTo(WorkItem other) {
-
-            int priority = Integer.compare(
-                    this.message().priority().getValue(),
-                    other.message().priority().getValue()
-            );
+            int priority = Integer.compare(this.message().priority().getValue(),
+                    other.message().priority().getValue());
             if (priority != 0) {
                 return priority;
             }
-
             return Long.compare(sequence, other.sequence);
         }
     }
