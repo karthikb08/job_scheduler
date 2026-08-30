@@ -118,31 +118,21 @@ class PriorityJobDispatcherTest {
                         )
                 );
 
-        assertTrue(
-                third.isCompletedExceptionally()
-        );
-
+        assertTrue(third.isCompletedExceptionally());
         workerBlocked.complete(null);
-
         first.get(5, TimeUnit.SECONDS);
-
         second.get(5, TimeUnit.SECONDS);
     }
 
     @Test
     void shouldCompleteFutureWhenJobCannotBeClaimed() throws Exception {
 
-        JobService jobService =
-                mock(JobService.class);
-
+        JobService jobService = mock(JobService.class);
         dispatcher = new PriorityJobDispatcher(jobService, 1, 10);
-
         dispatcher.start();
-
         when(
                 jobService.claimForExecution("job-001")
         ).thenReturn(null);
-
         CompletableFuture<Void> future =
                 dispatcher.submit(
                         createMessage(
@@ -150,13 +140,7 @@ class PriorityJobDispatcherTest {
                                 JobPriority.HIGH
                         )
                 );
-
-        assertDoesNotThrow(
-                () -> future.get(
-                        5,
-                        TimeUnit.SECONDS
-                )
-        );
+        assertDoesNotThrow(() -> future.get(5, TimeUnit.SECONDS));
 
         verify(jobService).claimForExecution("job-001");
         verify(jobService, never()).execute(any());
@@ -170,12 +154,8 @@ class PriorityJobDispatcherTest {
         dispatcher = new PriorityJobDispatcher(jobService, 1, 10);
 
         dispatcher.start();
-
         Job job = new Job();
-
-        when(
-                jobService.claimForExecution("job-001")
-        ).thenReturn(job);
+        when(jobService.claimForExecution("job-001")).thenReturn(job);
 
         CompletableFuture<Void> future =
                 dispatcher.submit(
@@ -192,24 +172,14 @@ class PriorityJobDispatcherTest {
     }
 
     @Test
-    void shouldCompleteFutureExceptionallyWhenExecutionFails()
-            throws Exception {
+    void shouldCompleteFutureExceptionallyWhenExecutionFails() throws Exception {
 
-        JobService jobService =
-                mock(JobService.class);
-
+        JobService jobService = mock(JobService.class);
         dispatcher = new PriorityJobDispatcher(jobService, 1, 10);
-
         dispatcher.start();
-
         Job job = new Job();
-
-        when(
-                jobService.claimForExecution("job-001")
-        ).thenReturn(job);
-
+        when(jobService.claimForExecution("job-001")).thenReturn(job);
         RuntimeException failure = new RuntimeException("Execution failed");
-
         doThrow(failure).when(jobService).execute(job);
 
         CompletableFuture<Void> future =
@@ -219,15 +189,7 @@ class PriorityJobDispatcherTest {
                                 JobPriority.HIGH
                         )
                 );
-
-        assertThrows(
-                Exception.class,
-                () -> future.get(
-                        5,
-                        TimeUnit.SECONDS
-                )
-        );
-
+        assertThrows(Exception.class, () -> future.get(5, TimeUnit.SECONDS));
         assertTrue(future.isCompletedExceptionally());
         verify(jobService).execute(job);
     }
@@ -237,25 +199,12 @@ class PriorityJobDispatcherTest {
     void shouldProcessMultipleJobs() throws Exception {
 
         JobService jobService = mock(JobService.class);
-
-        dispatcher =
-                new PriorityJobDispatcher(
-                        jobService,
-                        2,
-                        10
-                );
-
+        dispatcher = new PriorityJobDispatcher(jobService, 2, 10);
         dispatcher.start();
-
         Job job1 = new Job(), job2 = new Job();
 
-        when(
-                jobService.claimForExecution("job-001")
-        ).thenReturn(job1);
-
-        when(
-                jobService.claimForExecution("job-002")
-        ).thenReturn(job2);
+        when(jobService.claimForExecution("job-001")).thenReturn(job1);
+        when(jobService.claimForExecution("job-002")).thenReturn(job2);
 
         CompletableFuture<Void> future1 =
                 dispatcher.submit(
@@ -298,18 +247,12 @@ class PriorityJobDispatcherTest {
                 );
 
         dispatcher.start();
-
         assertDoesNotThrow(() -> dispatcher.stop());
-
         assertDoesNotThrow(() -> dispatcher.stop()
         );
     }
 
     private JobMessage createMessage(String jobId, JobPriority priority) {
-
-        return new JobMessage(jobId,
-                JobType.EXPORT_DATA,
-                priority
-        );
+        return new JobMessage(jobId, JobType.EXPORT_DATA, priority);
     }
 }

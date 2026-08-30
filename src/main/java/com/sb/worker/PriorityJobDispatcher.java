@@ -24,8 +24,7 @@ public class PriorityJobDispatcher {
     private volatile boolean running;
     private Thread[] workers;
 
-    public PriorityJobDispatcher(
-            JobService jobService,
+    public PriorityJobDispatcher(JobService jobService,
 
             @Value("${job.worker.threads:4}")
             int workerCount,
@@ -100,26 +99,33 @@ public class PriorityJobDispatcher {
     }
 
    //Shutdown
-    @PreDestroy
-    public void stop() throws InterruptedException {
-        System.out.println("========== SHUTDOWN STARTED ==========");
-        System.out.println("Stopping job workers...");
+   @PreDestroy
+   public void stop() throws InterruptedException {
 
-        running = false;
-        if (workers == null) {
-            return;
-        }
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
-        for (Thread worker : workers) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) {
-                break;
-            }
-            worker.join(TimeUnit.NANOSECONDS.toMillis(remaining));
-            System.out.println("Worker finished: " + worker.getName() + " alive=" + worker.isAlive());
-        }
-        System.out.println("========== JOB WORKERS STOPPED ==========");
-    }
+       System.out.println("========== SHUTDOWN STARTED ==========");
+       System.out.println("Stopping job workers...");
+
+       running = false;
+
+       if (workers == null) {
+           System.out.println("No workers to stop.");
+           return;
+       }
+
+       long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
+
+       for (Thread worker : workers) {
+           long remaining = deadline - System.nanoTime();
+           if (remaining <= 0) {
+               System.out.println("Shutdown timeout reached.");
+               break;
+           }
+           System.out.println("Waiting for worker: " + worker.getName());
+           worker.join(TimeUnit.NANOSECONDS.toMillis(remaining));
+           System.out.println("Worker finished: " + worker.getName() + " alive=" + worker.isAlive());
+       }
+       System.out.println("========== JOB WORKERS STOPPED ==========");
+   }
 
 
     private record WorkItem(JobMessage message, long sequence, CompletableFuture<Void> future)

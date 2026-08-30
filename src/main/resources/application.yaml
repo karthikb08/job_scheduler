@@ -19,8 +19,8 @@ server:
     port: 8080
     shutdown: graceful
 
-spring.lifecycle:
-    timeout-per-shutdown-phase: 30s
+    lifecycle:
+        timeout-per-shutdown-phase: 30s
 
 job:
     kafka:
@@ -37,7 +37,7 @@ management:
     endpoints:
         web:
             exposure:
-                include:
-                    - health
-                    - info
-                    - metrics
+                include: health,info,shutdown
+    endpoint:
+        shutdown:
+            enabled: true

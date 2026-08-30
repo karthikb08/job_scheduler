@@ -23,7 +23,7 @@ public class GenerateReportHandler implements JobHandler {
 
         // Simulate report generation
         try {
-            Thread.sleep(9000);//added for delay to check the cancel
+            Thread.sleep(30000);//added for delay to check the cancel
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Report generation interrupted", e);
